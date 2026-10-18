@@ -1,11 +1,12 @@
 input_path = "input.txt"
-output_path = "output.txt"
+output_path = "input.txt"
 SHOW_CHANGES = True
 DASH = '\u2014'
 REPLACEMENT = '; '
 TERMINATORS = '.!?'
 TRAILING_CLOSERS = '"\u201d\u2019\')]}'
 RIGHT_OK_STARTS = '"\u201c\u2018\'([{'
+OPENERS = '\u201c\u2018([{'
 ABBREVIATIONS = {
     'mr', 'mrs', 'ms', 'dr', 'prof', 'sr', 'jr', 'st', 'mt', 'vs', 'etc',
     'inc', 'ltd', 'co', 'no', 'fig', 'approx', 'gen', 'col', 'capt', 'lt',
@@ -14,14 +15,11 @@ ABBREVIATIONS = {
 }
 lines = []
 changes = []
-converted_count = 0
-multi_count = 0
-skipped_count = 0
+counts = {'converted': 0, 'skipped': 0, 'multi': 0}
 
 def load_lines():
-    global lines
     with open(input_path, 'r', encoding='utf-8', newline='') as f:
-        lines = f.read().split('\n')
+        lines[:] = f.read().split('\n')
 
 def write_lines():
     with open(output_path, 'w', encoding='utf-8', newline='') as f:
@@ -74,20 +72,19 @@ def can_convert(left, right):
     return any(ch.isalnum() for ch in right)
 
 def convert_sentence(sentence):
-    global converted_count, multi_count, skipped_count
     count = sentence.count(DASH)
     if count == 0:
         return sentence, None
     if count > 1:
-        multi_count += 1
+        counts['multi'] += 1
         return sentence, None
     idx = sentence.index(DASH)
     left = sentence[:idx].rstrip()
     right = sentence[idx + 1:].lstrip()
     if not can_convert(left.lstrip(), right):
-        skipped_count += 1
+        counts['skipped'] += 1
         return sentence, None
-    converted_count += 1
+    counts['converted'] += 1
     return left + REPLACEMENT + right, (idx, len(left))
 
 def snippet(text, center):
@@ -107,19 +104,51 @@ def fix_line(index):
             changes.append(f"{label}: {snippet(old, info[0])}\n{' ' * len(label)}  {snippet(new, info[1])}")
     lines[index] = ''.join(parts)
 
+def space_dashes(line):
+    result = []
+    i = 0
+    n = len(line)
+    while i < n:
+        if line[i] != DASH:
+            result.append(line[i])
+            i += 1
+            continue
+        j = i
+        while j < n and line[j] == DASH:
+            j += 1
+        s = len(result)
+        while s > 0 and result[s - 1] in ' \t':
+            s -= 1
+        if s > 0 and (s < len(result) or result[s - 1] not in OPENERS):
+            del result[s:]
+            result.append(' ')
+        result.append(line[i:j])
+        k = j
+        while k < n and line[k] in ' \t':
+            k += 1
+        if k == n or line[k] == '\r':
+            result.append(line[j:])
+            break
+        if k > j or line[k] not in TRAILING_CLOSERS + TERMINATORS:
+            result.append(' ')
+        i = k
+    return ''.join(result)
+
 def report():
     if SHOW_CHANGES:
         for change in changes:
             print(change)
             print()
-    print(f"Sentences with a single em dash converted: {converted_count}")
-    print(f"Single em dashes left unchanged (interruption, fragment, or edge position): {skipped_count}")
-    print(f"Sentences with multiple em dashes left unchanged: {multi_count}")
+    print(f"Sentences with a single em dash converted: {counts['converted']}")
+    print(f"Single em dashes left unchanged (interruption, fragment, or edge position): {counts['skipped']}")
+    print(f"Sentences with multiple em dashes left unchanged: {counts['multi']}")
 
 def main():
     load_lines()
     for index in range(len(lines)):
         fix_line(index)
+    for index in range(len(lines)):
+        lines[index] = space_dashes(lines[index])
     write_lines()
     report()
 

@@ -2,7 +2,7 @@ import sys
 from report_orphan_quotes import load_text, classify_quote
 
 input_path = "input.txt"
-output_path = "output.txt"
+output_path = "input.txt"
 OPEN_PRECEDERS = set(' \t\n\r\x00([{,;:')
 CLOSE_FOLLOWERS = set(' \t\n\r\x00)]}.,;:!?-')
 OPEN_QUOTE = '\u201c'

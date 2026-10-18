@@ -1,5 +1,5 @@
 input_path = "input.txt"
-output_path = "output.txt"
+output_path = "input.txt"
 FLIP_TRAILING_COMMA = True
 SHOW_CHANGES = True
 QUOTE_CHARS = {'"', '\u201c', '\u201d'}

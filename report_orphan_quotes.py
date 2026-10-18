@@ -1,6 +1,7 @@
 import sys
 from dataclasses import dataclass
 
+INPUT_PATH = 'input.txt'
 OPEN_PRECEDERS = set(' \t\n\r\x00([{,;:')
 CLOSE_FOLLOWERS = set(' \t\n\r\x00)]}.,;:!?-')
 
@@ -88,7 +89,7 @@ def report(pairs, orphaned, total_quotes):
         print(f"  Line {q.line:>5}, Col {q.col:>4}  [{q.role:>9}]  ...{q.raw_context}...")
 
 def main():
-    path = sys.argv[1] if len(sys.argv) > 1 else 'input.txt'
+    path = sys.argv[1] if len(sys.argv) > 1 else INPUT_PATH
     text = load_text(path)
     quotes = extract_quotes(text)
     pairs, orphaned = pair_quotes(quotes)
