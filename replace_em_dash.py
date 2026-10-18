@@ -3,6 +3,7 @@ output_path = "input.txt"
 SHOW_CHANGES = True
 DASH = '\u2014'
 REPLACEMENT = '; '
+PAREN_LIMIT = 40
 TERMINATORS = '.!?'
 TRAILING_CLOSERS = '"\u201d\u2019\')]}'
 RIGHT_OK_STARTS = '"\u201c\u2018\'([{'
@@ -15,7 +16,7 @@ ABBREVIATIONS = {
 }
 lines = []
 changes = []
-counts = {'converted': 0, 'skipped': 0, 'multi': 0}
+counts = {'converted': 0, 'parenthesized': 0, 'skipped': 0, 'multi': 0}
 
 def load_lines():
     with open(input_path, 'r', encoding='utf-8', newline='') as f:
@@ -71,11 +72,31 @@ def can_convert(left, right):
         return False
     return any(ch.isalnum() for ch in right)
 
+def convert_pair(sentence):
+    first = sentence.index(DASH)
+    second = sentence.index(DASH, first + 1)
+    left = sentence[:first].rstrip()
+    inner = sentence[first + 1:second].strip()
+    right = sentence[second + 1:].lstrip()
+    if not any(ch.isalnum() for ch in left):
+        return None
+    if not any(ch.isalnum() for ch in inner):
+        return None
+    if len(inner) >= PAREN_LIMIT:
+        return None
+    gap = '' if not right or right[0] in TRAILING_CLOSERS + TERMINATORS + ',;:' else ' '
+    return left + ' (' + inner + ')' + gap + right, (first, len(left) + 2)
+
 def convert_sentence(sentence):
     count = sentence.count(DASH)
     if count == 0:
         return sentence, None
     if count > 1:
+        if count == 2:
+            result = convert_pair(sentence)
+            if result is not None:
+                counts['parenthesized'] += 1
+                return result
         counts['multi'] += 1
         return sentence, None
     idx = sentence.index(DASH)
@@ -139,9 +160,10 @@ def report():
         for change in changes:
             print(change)
             print()
-    print(f"Sentences with a single em dash converted: {counts['converted']}")
+    print(f"Single em dash converted: {counts['converted']}")
+    print(f"Short em dash pair turned into parentheses: {counts['parenthesized']}")
     print(f"Single em dashes left unchanged (interruption, fragment, or edge position): {counts['skipped']}")
-    print(f"Sentences with multiple em dashes left unchanged: {counts['multi']}")
+    print(f"Other em dash combinations left unchanged: {counts['multi']}")
 
 def main():
     load_lines()
