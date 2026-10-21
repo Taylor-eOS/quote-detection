@@ -1,44 +1,14 @@
-input_path = "input.txt"
-output_path = "input.txt"
+from utils import prompt_path, load_lines, write_lines, is_abbreviation, TERMINATORS, TRAILING_CLOSERS
+
 SHOW_CHANGES = True
 DASH = '\u2014'
 REPLACEMENT = '; '
 PAREN_LIMIT = 40
-TERMINATORS = '.!?'
-TRAILING_CLOSERS = '"\u201d\u2019\')]}'
 RIGHT_OK_STARTS = '"\u201c\u2018\'([{'
 OPENERS = '\u201c\u2018([{'
-ABBREVIATIONS = {
-    'mr', 'mrs', 'ms', 'dr', 'prof', 'sr', 'jr', 'st', 'mt', 'vs', 'etc',
-    'inc', 'ltd', 'co', 'no', 'fig', 'approx', 'gen', 'col', 'capt', 'lt',
-    'sgt', 'rev', 'hon', 'jan', 'feb', 'mar', 'apr', 'jun', 'jul', 'aug',
-    'sep', 'sept', 'oct', 'nov', 'dec',
-}
 lines = []
 changes = []
 counts = {'converted': 0, 'parenthesized': 0, 'skipped': 0, 'multi': 0}
-
-def load_lines():
-    with open(input_path, 'r', encoding='utf-8', newline='') as f:
-        lines[:] = f.read().split('\n')
-
-def write_lines():
-    with open(output_path, 'w', encoding='utf-8', newline='') as f:
-        f.write('\n'.join(lines))
-
-def trailing_word(text):
-    start = len(text)
-    while start > 0 and (text[start - 1].isalpha() or text[start - 1] == '.'):
-        start -= 1
-    return text[start:]
-
-def is_abbreviation(before):
-    word = trailing_word(before)
-    if '.' in word:
-        return True
-    if word.lower() in ABBREVIATIONS:
-        return True
-    return len(word) == 1 and word.isupper()
 
 def find_sentence_spans(line):
     spans = []
@@ -166,12 +136,13 @@ def report():
     print(f"Other em dash combinations left unchanged: {counts['multi']}")
 
 def main():
-    load_lines()
+    path = prompt_path()
+    lines[:] = load_lines(path)
     for index in range(len(lines)):
         fix_line(index)
     for index in range(len(lines)):
         lines[index] = space_dashes(lines[index])
-    write_lines()
+    write_lines(path, lines)
     report()
 
 if __name__ == '__main__':

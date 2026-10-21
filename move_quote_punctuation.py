@@ -1,32 +1,15 @@
-input_path = "input.txt"
-output_path = "input.txt"
+from utils import prompt_path, load_lines, write_lines, is_abbreviation, TERMINATORS, TRAILING_CLOSERS
+
 FLIP_TRAILING_COMMA = True
 SHOW_CHANGES = True
 QUOTE_CHARS = {'"', '\u201c', '\u201d'}
 OPEN_CURLY = '\u201c'
 CLOSE_CURLY = '\u201d'
-TERMINATORS = '.!?'
-TRAILING_CLOSERS = '"\u201d\u2019\')]}'
-ABBREVIATIONS = {
-    'mr', 'mrs', 'ms', 'dr', 'prof', 'sr', 'jr', 'st', 'mt', 'vs', 'etc',
-    'inc', 'ltd', 'co', 'no', 'fig', 'approx', 'gen', 'col', 'capt', 'lt',
-    'sgt', 'rev', 'hon', 'jan', 'feb', 'mar', 'apr', 'jun', 'jul', 'aug',
-    'sep', 'sept', 'oct', 'nov', 'dec',
-}
 lines = []
 changes = []
 bad_lines = []
 candidate_count = 0
 flipped_count = 0
-
-def load_lines():
-    global lines
-    with open(input_path, 'r', encoding='utf-8', newline='') as f:
-        lines = f.read().split('\n')
-
-def write_lines():
-    with open(output_path, 'w', encoding='utf-8', newline='') as f:
-        f.write('\n'.join(lines))
 
 def find_pairs(line):
     marks = [(i, ch) for i, ch in enumerate(line) if ch in QUOTE_CHARS]
@@ -40,20 +23,6 @@ def find_pairs(line):
             return None
         pairs.append((open_idx, close_idx))
     return pairs
-
-def trailing_word(text):
-    start = len(text)
-    while start > 0 and (text[start - 1].isalpha() or text[start - 1] == '.'):
-        start -= 1
-    return text[start:]
-
-def is_abbreviation(before):
-    word = trailing_word(before)
-    if '.' in word:
-        return True
-    if word.lower() in ABBREVIATIONS:
-        return True
-    return len(word) == 1 and word.isupper()
 
 def has_internal_break(body):
     for j in range(len(body) - 1):
@@ -138,10 +107,11 @@ def report():
         print(f"Skipped {len(bad_lines)} line(s) with unbalanced or misordered quotes: {shown}{more}")
 
 def main():
-    load_lines()
+    path = prompt_path()
+    lines[:] = load_lines(path)
     for index in range(len(lines)):
         fix_line(index)
-    write_lines()
+    write_lines(path, lines)
     report()
 
 if __name__ == '__main__':

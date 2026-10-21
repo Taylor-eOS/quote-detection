@@ -1,16 +1,7 @@
-import sys
-from report_orphan_quotes import load_text, classify_quote
+from utils import prompt_path, load_text, write_text, classify_quote
 
-input_path = "input.txt"
-output_path = "input.txt"
-OPEN_PRECEDERS = set(' \t\n\r\x00([{,;:')
-CLOSE_FOLLOWERS = set(' \t\n\r\x00)]}.,;:!?-')
 OPEN_QUOTE = '\u201c'
 CLOSE_QUOTE = '\u201d'
-
-def write_text(path, text):
-    with open(path, 'w', encoding='utf-8') as f:
-        f.write(text)
 
 def extract_quotes(text):
     quotes = []
@@ -46,17 +37,17 @@ def apply_replacements(text, replacements):
     return ''.join(result)
 
 def main():
-    text = load_text(input_path)
+    path = prompt_path()
+    text = load_text(path)
     quotes = extract_quotes(text)
     replacements = pair_quotes(quotes)
     result = apply_replacements(text, replacements)
-    write_text(output_path, result)
+    write_text(path, result)
     replaced = len(replacements)
     skipped = len(quotes) - replaced
     print(f"Replaced {replaced} quote marks ({replaced // 2} pairs).")
     if skipped:
         print(f"Warning: {skipped} quote mark(s) were not replaced (orphaned).")
 
-if __name__=='__main__':
+if __name__ == '__main__':
     main()
-
