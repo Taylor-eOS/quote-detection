@@ -36,8 +36,7 @@ def apply_replacements(text, replacements):
         result.append(replacements.get(i, ch))
     return ''.join(result)
 
-def main():
-    path = prompt_path()
+def run(path):
     text = load_text(path)
     quotes = extract_quotes(text)
     replacements = pair_quotes(quotes)
@@ -48,6 +47,9 @@ def main():
     print(f"Replaced {replaced} quote marks ({replaced // 2} pairs).")
     if skipped:
         print(f"Warning: {skipped} quote mark(s) were not replaced (orphaned).")
+
+def main():
+    run(prompt_path())
 
 if __name__ == '__main__':
     main()

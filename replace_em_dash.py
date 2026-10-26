@@ -135,8 +135,10 @@ def report():
     print(f"Single em dashes left unchanged (interruption, fragment, or edge position): {counts['skipped']}")
     print(f"Other em dash combinations left unchanged: {counts['multi']}")
 
-def main():
-    path = prompt_path()
+def run(path):
+    changes.clear()
+    for key in counts:
+        counts[key] = 0
     lines[:] = load_lines(path)
     for index in range(len(lines)):
         fix_line(index)
@@ -144,6 +146,9 @@ def main():
         lines[index] = space_dashes(lines[index])
     write_lines(path, lines)
     report()
+
+def main():
+    run(prompt_path())
 
 if __name__ == '__main__':
     main()

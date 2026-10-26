@@ -106,13 +106,20 @@ def report():
         more = '' if len(bad_lines) <= 20 else f" and {len(bad_lines) - 20} more"
         print(f"Skipped {len(bad_lines)} line(s) with unbalanced or misordered quotes: {shown}{more}")
 
-def main():
-    path = prompt_path()
+def run(path):
+    global candidate_count, flipped_count
+    candidate_count = 0
+    flipped_count = 0
+    changes.clear()
+    bad_lines.clear()
     lines[:] = load_lines(path)
     for index in range(len(lines)):
         fix_line(index)
     write_lines(path, lines)
     report()
+
+def main():
+    run(prompt_path())
 
 if __name__ == '__main__':
     main()

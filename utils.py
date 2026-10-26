@@ -19,6 +19,14 @@ def prompt_path():
             return path
         print(f"File not found: {path}")
 
+def prompt_folder():
+    while True:
+        raw = input("Path to the folder: ").strip().strip('\'"')
+        path = os.path.abspath(os.path.expanduser(raw))
+        if os.path.isdir(path):
+            return path
+        print(f"Folder not found: {path}")
+
 def load_text(path):
     with open(path, 'r', encoding='utf-8', newline='') as f:
         return f.read()
